@@ -1,9 +1,28 @@
 
+import { getCurrentUser } from "@/lib/authorization";
 import { NextResponse } from "next/server";
 import pool from "@/lib/postgres";
 
 export async function GET() {
   try {
+    // Verify authentication.
+    const user = await getCurrentUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    // Only administrators can access dashboard statistics.
+    if (user.role !== "ADMIN") {
+      return NextResponse.json(
+        { success: false, message: "Admin access required" },
+        { status: 403 }
+      );
+    }
+
     const [
       studentResult,
       facultyResult,
