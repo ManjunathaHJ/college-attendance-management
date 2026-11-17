@@ -1,11 +1,11 @@
 
-import { getCurrentUser } from "@/lib/authorization";
 import { NextResponse } from "next/server";
 import pool from "@/lib/postgres";
+import { getCurrentUser } from "@/lib/authorization";
 
 export async function GET() {
   try {
-    // Verify authentication.
+    // Authentication check
     const user = await getCurrentUser();
 
     if (!user) {
@@ -15,10 +15,10 @@ export async function GET() {
       );
     }
 
-    // Only administrators can access dashboard statistics.
+    // Only administrators can access system-wide dashboard statistics
     if (user.role !== "ADMIN") {
       return NextResponse.json(
-        { success: false, message: "Admin access required" },
+        { success: false, message: "Access denied" },
         { status: 403 }
       );
     }
@@ -30,9 +30,13 @@ export async function GET() {
       pendingResult,
       recentResult,
     ] = await Promise.all([
-      pool.query("SELECT COUNT(*)::int AS total FROM students"),
+      pool.query(
+        "SELECT COUNT(*)::int AS total FROM students"
+      ),
 
-      pool.query("SELECT COUNT(*)::int AS total FROM faculty"),
+      pool.query(
+        "SELECT COUNT(*)::int AS total FROM faculty"
+      ),
 
       pool.query(`
         SELECT

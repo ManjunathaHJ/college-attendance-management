@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { verifyToken } from "@/lib/auth";
 
 export async function GET() {
+  await connection();
+
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("attendance_session")?.value;

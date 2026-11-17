@@ -104,6 +104,9 @@ college-attendance-management/
 │   ├── correction_update.sql
 │   ├── advanced.sql
 │   ├── transactions.sql
+│   ├── views.sql
+│   ├── dml_examples.sql
+│   ├── report_queries.sql
 │   ├── seed.sql
 │   └── mongodb-seed.js
 │
@@ -210,10 +213,23 @@ Execute the SQL scripts in the following order:
 2. `database/correction_update.sql`
 3. `database/advanced.sql`
 4. `database/seed.sql`
+5. `database/views.sql`
 
 The order is important because later scripts depend on objects created by earlier scripts.
 
 **Note:** The provided seed script uses placeholder password hashes and hardcoded IDs. Replace or configure these appropriately before attempting to use seeded accounts for authentication. Avoid rerunning the seed script against an already populated database without checking for duplicate records.
+
+### Optional SQL demonstrations
+
+After initializing PostgreSQL, run these scripts to demonstrate SQL operations and reporting:
+
+```powershell
+Get-Content database\dml_examples.sql | docker exec -i attendance-postgres psql -U attendance_user -d attendance_db
+
+Get-Content database\report_queries.sql | docker exec -i attendance-postgres psql -U attendance_user -d attendance_db
+```
+
+`dml_examples.sql` demonstrates DELETE safely using a temporary table and transaction rollback. `report_queries.sql` demonstrates JOIN, GROUP BY, HAVING, aggregate functions and attendance calculations.
 
 ### Step 6: Initialize MongoDB sample data
 

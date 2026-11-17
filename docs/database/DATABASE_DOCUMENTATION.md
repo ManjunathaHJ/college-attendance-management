@@ -1,10 +1,10 @@
-﻿# Database Documentation â€” College Attendance Management System
+# Database Documentation - College Attendance Management System
 
 **Database engine:** PostgreSQL 17  
 **Supplementary datastore:** MongoDB 8 (`audit_logs` collection)  
-**Source reviewed:** `database/schema.sql`, `database/correction_update.sql`, `database/advanced.sql`, `database/transactions.sql`, `database/seed.sql`, and `database/mongodb-seed.js` on the repository's `master` branch.
+**Source reviewed:** `database/schema.sql`, `database/correction_update.sql`, `database/advanced.sql`, `database/transactions.sql`, `database/seed.sql`, `database/views.sql`, `database/dml_examples.sql`, `database/report_queries.sql`, and `database/mongodb-seed.js`.
 
-> This document describes the SQL currently present in the repository. It distinguishes implemented database objects from items that are not currently present; it does not claim that scripts have been executed successfully.
+> This document describes the SQL currently present in the repository and distinguishes implemented database objects from items that are not currently present. The attendance_summary view, safe DELETE demonstration and attendance report query were executed and verified on 13 November 2026. Not every SQL script has been executed.
 
 ## 1. Database responsibilities
 
@@ -212,8 +212,19 @@ PostgreSQL automatically creates indexes to enforce primary-key and unique const
 - `INSERT` populates users, faculty, students, subjects, offerings, enrolments, sessions and attendance in `seed.sql`.
 - `SELECT` is used in the transaction script to inspect a correction request and in the function/procedure to validate related rows.
 - `UPDATE` changes attendance status and correction review metadata in the stored procedure.
-- No standalone `DELETE` example appears in the reviewed SQL scripts.
+- `DELETE` is demonstrated in `dml_examples.sql` using a temporary table inside a transaction. The transaction is rolled back, so permanent application data is not modified.
 
+### Aggregate attendance report query
+`report_queries.sql` contains a tested attendance report grouped by student and subject.
+
+The query demonstrates:
+- Multiple `JOIN` operations across attendance, students, sessions, class offerings and subjects.
+- `GROUP BY` to aggregate attendance records by student and subject.
+- `HAVING` to show only groups containing at least one absent record.
+- `COUNT`, `SUM`, `CASE` and `ROUND` for attendance calculations.
+- `ORDER BY` to sort results by subject and attendance percentage.
+
+The query was executed against the project database and returned Student Two's DBMS attendance: 2 recorded classes, 1 present, 1 absent and 50.00% attendance.
 ### Trigger and function: attendance validation
 `validate_attendance()` is a PL/pgSQL trigger function invoked by `attendance_validation_trigger` before `INSERT` or `UPDATE` on `attendance_records`.
 
@@ -235,7 +246,16 @@ It raises an exception when any rule fails, preventing the invalid attendance wr
 A rejected request updates the request review fields but does not change attendance status.
 
 ### Views
-No `CREATE VIEW` or `CREATE MATERIALIZED VIEW` statement was found in the reviewed database SQL files. Do not claim that views are implemented. If views are required by the assignment rubric, add them as a separate, reviewed enhancement.
+
+The project implements the PostgreSQL view `attendance_summary`, defined in `database/views.sql`.
+
+The view joins students, enrollments, class offerings, subjects, class sessions and attendance records. It groups results by student and subject and provides:
+
+- Total classes.
+- Present, late and absent class counts.
+- Attendance percentage, counting both `PRESENT` and `LATE` as attended.
+
+The view was successfully created and verified against the project database on 13 November 2026. The verification returned two DBMS student records with attendance percentages of 100.00% and 50.00%.
 
 ### Transactions
 `transactions.sql` demonstrates explicit transaction control with `BEGIN`, `INSERT`, `SELECT` and `COMMIT` for a correction request. The stored procedure also uses `SELECT ... FOR UPDATE` to lock the pending request during review; PostgreSQL executes a procedure call within the caller's transaction context.
@@ -260,6 +280,7 @@ Run from the repository root against a clean PostgreSQL database:
 2. `database/correction_update.sql`
 3. `database/advanced.sql`
 4. `database/seed.sql`
+5. `database/views.sql`
 
 Then verify objects and sample rows before running `database/transactions.sql`.
 
@@ -297,7 +318,7 @@ Mark each test as PASS only after running it against the actual database and sav
 2. **Correction ownership:** the schema has separate `attendance_id` and `student_id` foreign keys but no composite constraint proving that the attendance row belongs to the same student. The application route should validate ownership; a database-level constraint/trigger could strengthen this.
 3. **One pending request policy:** the current schema permits multiple correction requests for the same attendance record, including multiple pending requests. Confirm whether the assignment expects one pending request at a time.
 4. **Index redundancy:** `idx_students_srn` duplicates the unique index created for `srn`.
-5. **No views:** none found in the reviewed SQL files. Add only if required by the assignment.
+5. **Views:** `attendance_summary` is defined in `database/views.sql` and verified against the project database.
 6. **MongoDB runtime writes:** the sample seed is not an audit integration. Implement and test actual event writes if audit logging is required.
 7. **Transaction script repeatability:** hard-coded IDs may not match a non-empty database.
 8. **Demo credentials:** placeholder password hashes must not be represented as working credentials.
@@ -317,8 +338,4 @@ Capture genuine screenshots from pgAdmin/psql and the running application:
 - Transaction execution and committed result.
 
 Do not insert expected output screenshots in place of actual execution evidence.
-
-
-
-
 

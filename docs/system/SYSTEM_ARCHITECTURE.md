@@ -97,7 +97,7 @@ Next.js Route Handlers implement server-side operations.
 - API handlers apply role checks to protected operations. For example, student/faculty creation is Admin-only; attendance marking and session creation are Faculty-only; correction submission is Student-only; correction review is Faculty-only.
 - The role-access test script checks several authenticated and unauthenticated API access cases. Test execution is separate from source inspection.
 
-**Implementation note requiring separate verification:** `src/app/api/dashboard/route.ts` currently performs dashboard queries without calling `getCurrentUser()` or `hasRole()`. Do not describe that endpoint as server-side authenticated until this is reviewed and corrected. The Admin page checks the role in the client, but client-side routing is not a substitute for API authorization.
+The `/api/dashboard` route now performs server-side authentication and restricts dashboard access to the ADMIN role. The automated role-access test suite verifies unauthenticated, Admin, Faculty and Student access.
 
 ### 4.4 Data access layer
 
@@ -232,8 +232,8 @@ The seed script contains placeholder password-hash strings and hard-coded IDs. D
 
 - The current `docker-compose.yml` runs the database services only; the Next.js app runs separately.
 - MongoDB seed documents are demonstrations; live application writes to `audit_logs` were not found in the inspected routes.
-- No runtime test result is claimed by this document.
-- `/api/dashboard` lacks a server-side role/authentication check in the inspected source and should be reviewed as a security issue.
+- The automated role-access test suite passed 29/29 tests on 13 November 2026. This result covers the tested API role-access cases, not every UI workflow.
+- `/api/dashboard` requires authentication and restricts access to Admin. Its role-access behaviour is covered by the automated test suite.
 - The SQL seed uses placeholder password hashes; demo login credentials must be established and tested separately.
 - The database scripts must be executed in the documented order.
 

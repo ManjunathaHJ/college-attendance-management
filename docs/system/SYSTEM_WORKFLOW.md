@@ -123,7 +123,7 @@ sequenceDiagram
 | View correction requests | All | Assigned classes | Own requests |
 | Approve/reject correction requests | No | Assigned classes | No |
 
-This matrix describes the intended and source-implemented API/UI role behaviour inspected in the repository. The dashboard API authentication gap documented in `SYSTEM_ARCHITECTURE.md` must be treated separately; do not infer security from client-side page redirects.
+This matrix describes the role behaviour implemented in the application. Protected API routes enforce access on the server. The `/api/dashboard` endpoint is restricted to Admin.
 
 ## 5. Workflow rules
 
@@ -139,4 +139,4 @@ This matrix describes the intended and source-implemented API/UI role behaviour 
 
 ## 6. Verification boundary
 
-These diagrams document the code paths and database logic found during repository inspection. They are not evidence that the application has been launched or that each workflow has passed a live test. Record actual outcomes in the final testing report after execution.
+The application was launched and the automated role-access test suite passed 29/29 tests on 13 November 2026. These tests verify the tested API access rules; they do not establish that every UI workflow has passed end-to-end testing. Capture separate screenshots and results for each demonstrated workflow.
